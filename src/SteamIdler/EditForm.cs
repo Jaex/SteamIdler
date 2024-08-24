@@ -41,11 +41,32 @@ namespace SteamIdler
             InitializeComponent();
             Icon = Resources.SteamIdler_Icon;
 
+            ApplyTheme(AppTheme.DarkTheme);
+
             if (File.Exists(FilePath))
             {
                 txtAppIDs.Text = File.ReadAllText(FilePath, Encoding.UTF8);
-                txtAppIDs.SelectionStart = 0;
+                txtAppIDs.SelectionStart = txtAppIDs.TextLength;
             }
+        }
+
+        private void ApplyTheme(AppTheme theme)
+        {
+            BackColor = theme.BackgroundColor;
+
+            txtAppIDs.BackColor = theme.LightBackgroundColor;
+            txtAppIDs.ForeColor = theme.TextColor;
+            txtAppIDs.BorderStyle = BorderStyle.None;
+
+            btnOK.BackColor = theme.LightBackgroundColor;
+            btnOK.ForeColor = theme.TextColor;
+            btnOK.FlatStyle = FlatStyle.Flat;
+            btnOK.FlatAppearance.BorderSize = 0;
+
+            btnCancel.BackColor = theme.LightBackgroundColor;
+            btnCancel.ForeColor = theme.TextColor;
+            btnCancel.FlatStyle = FlatStyle.Flat;
+            btnCancel.FlatAppearance.BorderSize = 0;
         }
 
         private void btnOK_Click(object sender, EventArgs e)

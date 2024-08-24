@@ -36,27 +36,29 @@ namespace SteamIdler
 
         private SteamIdlerManager steamIdlerManager;
         private NotifyIcon trayIcon;
+        private ContextMenuStrip cmsMain;
         private ToolStripMenuItem tsmiEdit, tsmiStartup, tsmiExit;
 
         public SteamIdlerApplicationContext()
         {
+            cmsMain = new ContextMenuStrip();
+            cmsMain.Renderer = new ToolStripDarkRenderer();
+            cmsMain.Font = AppTheme.DarkTheme.TextFont;
+
             tsmiEdit = new ToolStripMenuItem("Edit App IDs...", null, tsmiEdit_Click);
+            cmsMain.Items.Add(tsmiEdit);
 
             tsmiStartup = new ToolStripMenuItem("Start with Windows", null, tsmiStartup_Click);
             tsmiStartup.Checked = CheckStartup();
+            cmsMain.Items.Add(tsmiStartup);
 
             tsmiExit = new ToolStripMenuItem("Exit", null, tsmiExit_Click);
+            cmsMain.Items.Add(tsmiExit);
 
             trayIcon = new NotifyIcon();
             trayIcon.Text = Application.ProductName + " " + Application.ProductVersion;
             trayIcon.Icon = Resources.SteamIdler_Icon;
-            trayIcon.ContextMenuStrip = new ContextMenuStrip()
-            {
-                Items =
-                {
-                    tsmiEdit, tsmiStartup, tsmiExit
-                }
-            };
+            trayIcon.ContextMenuStrip = cmsMain;
             trayIcon.MouseDoubleClick += trayIcon_MouseDoubleClick;
             trayIcon.Visible = true;
 

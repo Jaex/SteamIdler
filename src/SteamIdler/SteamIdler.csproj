@@ -49,6 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppTheme.cs" />
+    <Compile Include="DarkColorTable.cs" />
     <Compile Include="EditForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -60,6 +62,7 @@
     <Compile Include="SteamAPI.cs" />
     <Compile Include="SteamIdlerApplicationContext.cs" />
     <Compile Include="SteamIdlerManager.cs" />
+    <Compile Include="ToolStripDarkRenderer.cs" />
     <EmbeddedResource Include="EditForm.resx">
       <DependentUpon>EditForm.cs</DependentUpon>
     </EmbeddedResource>

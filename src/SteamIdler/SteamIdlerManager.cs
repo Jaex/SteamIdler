@@ -43,12 +43,7 @@ namespace SteamIdler
 
         public bool RunApps()
         {
-            if (Processes.Count > 0)
-            {
-                CloseApps();
-
-                Thread.Sleep(3000);
-            }
+            CloseApps();
 
             if (AppIDs != null && AppIDs.Count > 0)
             {
