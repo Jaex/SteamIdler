@@ -24,7 +24,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace SteamIdler
 {
@@ -41,20 +40,11 @@ namespace SteamIdler
 
         public static bool Init(long appID)
         {
-            using (Mutex mutex = new Mutex(false, "SteamAPI_Init_Mutex"))
+            using (MutexManager mutex = new MutexManager("SteamAPI_Init_Mutex"))
             {
-                try
-                {
-                    mutex.WaitOne();
+                Environment.SetEnvironmentVariable("SteamAppId", appID.ToString());
 
-                    Environment.SetEnvironmentVariable("SteamAppId", appID.ToString());
-
-                    return Init();
-                }
-                finally
-                {
-                    mutex.ReleaseMutex();
-                }
+                return Init();
             }
         }
 

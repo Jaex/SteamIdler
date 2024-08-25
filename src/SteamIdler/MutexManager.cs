@@ -23,34 +23,44 @@
 #endregion License Information (GPL v3)
 
 using System;
-using System.Windows.Forms;
+using System.Threading;
 
 namespace SteamIdler
 {
-    internal static class Program
+    public class MutexManager : IDisposable
     {
-        [STAThread]
-        private static void Main(string[] args)
+        public bool HasHandle { get; private set; }
+
+        private Mutex mutex;
+
+        public MutexManager(string mutexName) : this(mutexName, Timeout.Infinite)
         {
-            if (args.Length >= 2 && args[0].Equals("-AppID", StringComparison.OrdinalIgnoreCase) && long.TryParse(args[1], out long appID))
+        }
+
+        public MutexManager(string mutexName, int timeout)
+        {
+            mutex = new Mutex(false, mutexName);
+
+            try
             {
-                if (SteamAPI.Init(appID))
-                {
-                    Application.Run();
-                    SteamAPI.Shutdown();
-                }
+                HasHandle = mutex.WaitOne(timeout, false);
             }
-            else
+            catch (AbandonedMutexException)
             {
-                using (MutexManager mutex = new MutexManager("d0172a1a-5a5f-4fb3-bf46-a7e3138654f9", 0))
+                HasHandle = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (mutex != null)
+            {
+                if (HasHandle)
                 {
-                    if (mutex.HasHandle)
-                    {
-                        Application.EnableVisualStyles();
-                        Application.SetCompatibleTextRenderingDefault(false);
-                        Application.Run(new SteamIdlerApplicationContext());
-                    }
+                    mutex.ReleaseMutex();
                 }
+
+                mutex.Dispose();
             }
         }
     }

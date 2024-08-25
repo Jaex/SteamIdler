@@ -57,15 +57,13 @@
     <Compile Include="EditForm.Designer.cs">
       <DependentUpon>EditForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="MutexManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteamAPI.cs" />
     <Compile Include="SteamIdlerApplicationContext.cs" />
     <Compile Include="SteamIdlerManager.cs" />
     <Compile Include="ToolStripDarkRenderer.cs" />
-    <EmbeddedResource Include="EditForm.resx">
-      <DependentUpon>EditForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
