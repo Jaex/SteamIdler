@@ -24,8 +24,10 @@
 
 using SteamIdler.Properties;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace SteamIdler
@@ -45,8 +47,9 @@ namespace SteamIdler
 
             if (File.Exists(FilePath))
             {
-                txtAppIDs.Text = File.ReadAllText(FilePath, Encoding.UTF8);
-                txtAppIDs.SelectionStart = txtAppIDs.TextLength;
+                rtbAppIDs.Text = File.ReadAllText(FilePath, Encoding.UTF8);
+                rtbAppIDs.SelectionStart = rtbAppIDs.TextLength;
+                SyntaxHighlight(rtbAppIDs);
             }
         }
 
@@ -54,9 +57,10 @@ namespace SteamIdler
         {
             BackColor = theme.BackgroundColor;
 
-            txtAppIDs.BackColor = theme.LightBackgroundColor;
-            txtAppIDs.ForeColor = theme.TextColor;
-            txtAppIDs.BorderStyle = BorderStyle.None;
+            pAppIDs.BackColor = theme.LightBackgroundColor;
+
+            rtbAppIDs.BackColor = theme.LightBackgroundColor;
+            rtbAppIDs.ForeColor = theme.TextColor;
 
             btnOK.BackColor = theme.LightBackgroundColor;
             btnOK.ForeColor = theme.TextColor;
@@ -69,11 +73,42 @@ namespace SteamIdler
             btnCancel.FlatAppearance.BorderSize = 0;
         }
 
+        private void SyntaxHighlight(RichTextBox rtb)
+        {
+            if (rtb.TextLength > 0)
+            {
+                Color colorComment = Color.FromArgb(87, 166, 74);
+
+                rtb.BeginUpdate();
+                int originalSelectionStart = rtb.SelectionStart;
+                int originalSelectionLength = rtb.SelectionLength;
+
+                rtb.SelectAll();
+                rtb.SelectionColor = rtb.ForeColor;
+
+                Regex regex = new Regex("//.*", RegexOptions.Compiled);
+
+                foreach (Match match in regex.Matches(rtb.Text))
+                {
+                    rtb.Select(match.Index, match.Length);
+                    rtb.SelectionColor = colorComment;
+                }
+
+                rtb.Select(originalSelectionStart, originalSelectionLength);
+                rtb.EndUpdate();
+            }
+        }
+
+        private void rtbAppIDs_TextChanged(object sender, EventArgs e)
+        {
+            SyntaxHighlight(rtbAppIDs);
+        }
+
         private void btnOK_Click(object sender, EventArgs e)
         {
             try
             {
-                File.WriteAllText(FilePath, txtAppIDs.Text, Encoding.UTF8);
+                File.WriteAllText(FilePath, rtbAppIDs.Text, Encoding.UTF8);
 
                 DialogResult = DialogResult.OK;
             }
