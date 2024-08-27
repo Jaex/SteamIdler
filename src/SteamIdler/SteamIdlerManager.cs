@@ -87,6 +87,8 @@ namespace SteamIdler
                     {
                         process.Kill();
                     }
+
+                    process.Dispose();
                 }
 
                 Processes.Clear();

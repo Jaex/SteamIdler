@@ -25,6 +25,7 @@
 using Microsoft.Win32;
 using SteamIdler.Properties;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
@@ -35,9 +36,9 @@ namespace SteamIdler
         public string AppIDsFilePath { get; private set; }
 
         private SteamIdlerManager steamIdlerManager;
-        private NotifyIcon trayIcon;
+        private NotifyIcon niMain;
         private ContextMenuStrip cmsMain;
-        private ToolStripMenuItem tsmiEdit, tsmiStartup, tsmiExit;
+        private ToolStripMenuItem tsmiEdit, tsmiStartup, tsmiGitHub, tsmiExit;
 
         public SteamIdlerApplicationContext()
         {
@@ -45,22 +46,31 @@ namespace SteamIdler
             cmsMain.Renderer = new ToolStripDarkRenderer();
             cmsMain.Font = AppTheme.DarkTheme.TextFont;
 
-            tsmiEdit = new ToolStripMenuItem("Edit App IDs...", null, tsmiEdit_Click);
+            tsmiEdit = new ToolStripMenuItem("Edit App IDs...");
+            tsmiEdit.Click += tsmiEdit_Click;
             cmsMain.Items.Add(tsmiEdit);
 
-            tsmiStartup = new ToolStripMenuItem("Start with Windows", null, tsmiStartup_Click);
+            tsmiStartup = new ToolStripMenuItem("Start with Windows");
             tsmiStartup.Checked = CheckStartup();
+            tsmiStartup.Click += tsmiStartup_Click;
             cmsMain.Items.Add(tsmiStartup);
 
-            tsmiExit = new ToolStripMenuItem("Exit", null, tsmiExit_Click);
+            tsmiGitHub = new ToolStripMenuItem("Open GitHub page...");
+            tsmiGitHub.Click += tsmiGitHub_Click;
+            cmsMain.Items.Add(tsmiGitHub);
+
+            cmsMain.Items.Add(new ToolStripSeparator());
+
+            tsmiExit = new ToolStripMenuItem("Exit");
+            tsmiExit.Click += tsmiExit_Click;
             cmsMain.Items.Add(tsmiExit);
 
-            trayIcon = new NotifyIcon();
-            trayIcon.Text = Application.ProductName + " " + Application.ProductVersion;
-            trayIcon.Icon = Resources.SteamIdler_Icon;
-            trayIcon.ContextMenuStrip = cmsMain;
-            trayIcon.MouseDoubleClick += trayIcon_MouseDoubleClick;
-            trayIcon.Visible = true;
+            niMain = new NotifyIcon();
+            niMain.Text = Application.ProductName + " " + Application.ProductVersion;
+            niMain.Icon = Resources.SteamIdler_Icon;
+            niMain.ContextMenuStrip = cmsMain;
+            niMain.MouseDoubleClick += trayIcon_MouseDoubleClick;
+            niMain.Visible = true;
 
             /*
             string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SteamIdler");
@@ -76,7 +86,14 @@ namespace SteamIdler
 
             steamIdlerManager = new SteamIdlerManager();
 
-            RunApps();
+            if (File.Exists(AppIDsFilePath))
+            {
+                RunApps();
+            }
+            else
+            {
+                niMain.ShowBalloonTip(5000, null, "Steam Idler app is running in the system tray.\r\n\r\nMake sure to configure App IDs from tray icon.", ToolTipIcon.None);
+            }
         }
 
         private void RunApps()
@@ -165,10 +182,22 @@ namespace SteamIdler
             }
         }
 
+        private void tsmiGitHub_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start("https://github.com/Jaex/SteamIdler");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void tsmiExit_Click(object sender, EventArgs e)
         {
             // Hide tray icon, otherwise it will remain shown until user mouses over it
-            trayIcon.Visible = false;
+            niMain.Visible = false;
 
             try
             {
