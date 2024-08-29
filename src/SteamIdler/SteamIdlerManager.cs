@@ -72,9 +72,11 @@ namespace SteamIdler
                     Process process = Process.Start(Application.ExecutablePath, "-AppID " + appID);
                     Processes.Add(process);
                 }
+
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public void CloseApps()
