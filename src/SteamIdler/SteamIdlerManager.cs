@@ -34,6 +34,7 @@ namespace SteamIdler
 {
     public class SteamIdlerManager : IDisposable
     {
+        public bool IsRunning { get; private set; }
         public List<long> AppIDs { get; private set; }
         public List<Process> Processes { get; private set; } = new List<Process>();
 
@@ -73,6 +74,8 @@ namespace SteamIdler
                     Processes.Add(process);
                 }
 
+                IsRunning = true;
+
                 return true;
             }
 
@@ -95,6 +98,8 @@ namespace SteamIdler
 
                 Processes.Clear();
             }
+
+            IsRunning = false;
         }
 
         public void LoadAppIDs(string filePath)

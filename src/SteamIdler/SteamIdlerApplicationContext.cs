@@ -39,7 +39,6 @@ namespace SteamIdler
         private NotifyIcon niMain;
         private ContextMenuStrip cmsMain;
         private ToolStripMenuItem tsmiStart, tsmiStop, tsmiEdit, tsmiStartup, tsmiGitHub, tsmiExit;
-        private bool isRunning;
 
         public SteamIdlerApplicationContext()
         {
@@ -47,12 +46,11 @@ namespace SteamIdler
             cmsMain.Renderer = new ToolStripDarkRenderer();
             cmsMain.Font = AppTheme.DarkTheme.TextFont;
 
-            tsmiStart = new ToolStripMenuItem("Start apps");
+            tsmiStart = new ToolStripMenuItem("Start Idling");
             tsmiStart.Click += tsmiStart_Click;
             cmsMain.Items.Add(tsmiStart);
 
-            tsmiStop = new ToolStripMenuItem("Stop apps");
-            tsmiStop.Visible = false;
+            tsmiStop = new ToolStripMenuItem("Stop Idling");
             tsmiStop.Click += tsmiStop_Click;
             cmsMain.Items.Add(tsmiStop);
 
@@ -65,7 +63,7 @@ namespace SteamIdler
             tsmiStartup.Click += tsmiStartup_Click;
             cmsMain.Items.Add(tsmiStartup);
 
-            tsmiGitHub = new ToolStripMenuItem("Open GitHub page...");
+            tsmiGitHub = new ToolStripMenuItem("Open GitHub Page...");
             tsmiGitHub.Click += tsmiGitHub_Click;
             cmsMain.Items.Add(tsmiGitHub);
 
@@ -96,6 +94,8 @@ namespace SteamIdler
 
             steamIdlerManager = new SteamIdlerManager();
 
+            UpdateControls();
+
             if (File.Exists(AppIDsFilePath))
             {
                 StartApps();
@@ -106,42 +106,41 @@ namespace SteamIdler
             }
         }
 
+        private void UpdateControls()
+        {
+            tsmiStart.Visible = !steamIdlerManager.IsRunning;
+            tsmiStop.Visible = steamIdlerManager.IsRunning;
+        }
+
         private void StartApps()
         {
-            if (!isRunning)
+            try
             {
-                try
+                if (File.Exists(AppIDsFilePath))
                 {
-                    if (File.Exists(AppIDsFilePath))
-                    {
-                        steamIdlerManager.LoadAppIDs(AppIDsFilePath);
-                        isRunning = steamIdlerManager.RunApps();
-                        tsmiStart.Visible = !isRunning;
-                        tsmiStop.Visible = isRunning;
-                    }
+                    steamIdlerManager.LoadAppIDs(AppIDsFilePath);
+                    steamIdlerManager.RunApps();
+
+                    UpdateControls();
                 }
-                catch (Exception e)
-                {
-                    MessageBox.Show(e.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void StopApps()
         {
-            if (isRunning)
+            try
             {
-                try
-                {
-                    steamIdlerManager.CloseApps();
-                    isRunning = false;
-                    tsmiStart.Visible = !isRunning;
-                    tsmiStop.Visible = isRunning;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                steamIdlerManager.CloseApps();
+
+                UpdateControls();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
