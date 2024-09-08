@@ -29,10 +29,15 @@ namespace SteamIdler
 {
     internal static class Program
     {
+        /// <summary>
+        /// The time to wait for Steam to launch in seconds.
+        /// </summary>
+        public static int WaitSteam { get; private set; }
+
         [STAThread]
         private static void Main(string[] args)
         {
-            if (args.Length >= 2 && args[0].Equals("-AppID", StringComparison.OrdinalIgnoreCase) && long.TryParse(args[1], out long appID))
+            if (args.Length >= 2 && args[0].Equals("-AppID", StringComparison.OrdinalIgnoreCase) && int.TryParse(args[1], out int appID))
             {
                 if (SteamAPI.Init(appID))
                 {
@@ -46,6 +51,11 @@ namespace SteamIdler
                 {
                     if (mutex.HasHandle)
                     {
+                        if (args.Length >= 2 && args[0].Equals("-WaitSteam", StringComparison.OrdinalIgnoreCase) && int.TryParse(args[1], out int waitSteam))
+                        {
+                            WaitSteam = waitSteam;
+                        }
+
                         Application.EnableVisualStyles();
                         Application.SetCompatibleTextRenderingDefault(false);
                         Application.Run(new SteamIdlerApplicationContext());

@@ -27,7 +27,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SteamIdler
@@ -35,41 +35,48 @@ namespace SteamIdler
     public class SteamIdlerManager : IDisposable
     {
         public bool IsRunning { get; private set; }
-        public List<long> AppIDs { get; private set; }
+        public List<int> AppIDs { get; private set; }
         public List<Process> Processes { get; private set; } = new List<Process>();
 
         public SteamIdlerManager()
         {
         }
 
+        public async Task<bool> WaitSteam(int timeoutSeconds)
+        {
+            if (SteamAPI.IsSteamRunning())
+            {
+                return true;
+            }
+            else if (timeoutSeconds > 0)
+            {
+                // Wait for Steam to launch
+                for (int i = 0; i < timeoutSeconds && !SteamAPI.IsSteamRunning(); i++)
+                {
+                    await Task.Delay(1000);
+                }
+
+                if (SteamAPI.IsSteamRunning())
+                {
+                    // Even "IsSteamRunning()" is true still Steam API init can fail, therefore need to give more time for Steam to launch
+                    await Task.Delay(5000);
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public bool RunApps()
         {
             CloseApps();
 
-            if (AppIDs != null && AppIDs.Count > 0)
+            if (AppIDs != null && AppIDs.Count > 0 && SteamAPI.IsSteamRunning())
             {
-                if (!SteamAPI.IsSteamRunning())
-                {
-                    // Wait for Steam to launch
-                    for (int i = 0; i < 60 && !SteamAPI.IsSteamRunning(); i++)
-                    {
-                        Thread.Sleep(1000);
-                    }
-
-                    if (SteamAPI.IsSteamRunning())
-                    {
-                        // Even "IsSteamRunning" is true still Steam API init can fail, therefore need to give more time for Steam to launch
-                        Thread.Sleep(5000);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
                 for (int i = 0; i < AppIDs.Count; i++)
                 {
-                    long appID = AppIDs[i];
+                    int appID = AppIDs[i];
                     Process process = Process.Start(Application.ExecutablePath, "-AppID " + appID);
                     Processes.Add(process);
                 }
@@ -104,28 +111,31 @@ namespace SteamIdler
 
         public void LoadAppIDs(string filePath)
         {
-            List<long> appIDs = new List<long>();
+            List<int> appIDs = new List<int>();
 
-            string[] lines = File.ReadAllLines(filePath, Encoding.UTF8);
-
-            for (int i = 0; i < lines.Length; i++)
+            if (File.Exists(filePath))
             {
-                string line = lines[i];
+                string[] lines = File.ReadAllLines(filePath, Encoding.UTF8);
 
-                if (!string.IsNullOrEmpty(line))
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    int index = line.IndexOf("//");
+                    string line = lines[i];
 
-                    if (index > -1)
+                    if (!string.IsNullOrEmpty(line))
                     {
-                        line = line.Remove(index);
-                    }
+                        int index = line.IndexOf("//");
 
-                    line = line.Trim();
+                        if (index > -1)
+                        {
+                            line = line.Remove(index);
+                        }
 
-                    if (long.TryParse(line, out long appID))
-                    {
-                        appIDs.Add(appID);
+                        line = line.Trim();
+
+                        if (int.TryParse(line, out int appID))
+                        {
+                            appIDs.Add(appID);
+                        }
                     }
                 }
             }

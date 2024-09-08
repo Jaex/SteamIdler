@@ -111,21 +111,17 @@ namespace SteamIdler
                 File.WriteAllText(FilePath, rtbAppIDs.Text, Encoding.UTF8);
 
                 DialogResult = DialogResult.OK;
+                Close();
             }
             catch (Exception ex)
             {
-                DialogResult = DialogResult.Cancel;
-
                 MessageBox.Show(ex.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            Close();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
-
             Close();
         }
     }

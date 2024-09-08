@@ -27,6 +27,7 @@ using SteamIdler.Properties;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SteamIdler
@@ -39,6 +40,7 @@ namespace SteamIdler
         private NotifyIcon niMain;
         private ContextMenuStrip cmsMain;
         private ToolStripMenuItem tsmiStart, tsmiStop, tsmiEdit, tsmiStartup, tsmiGitHub, tsmiExit;
+        private bool exiting;
 
         public SteamIdlerApplicationContext()
         {
@@ -59,7 +61,6 @@ namespace SteamIdler
             cmsMain.Items.Add(tsmiEdit);
 
             tsmiStartup = new ToolStripMenuItem("Start with Windows");
-            tsmiStartup.Checked = CheckStartup();
             tsmiStartup.Click += tsmiStartup_Click;
             cmsMain.Items.Add(tsmiStartup);
 
@@ -80,6 +81,8 @@ namespace SteamIdler
             niMain.MouseDoubleClick += trayIcon_MouseDoubleClick;
             niMain.Visible = true;
 
+            tsmiStartup.Checked = CheckStartup();
+
             /*
             string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SteamIdler");
 
@@ -96,9 +99,18 @@ namespace SteamIdler
 
             UpdateControls();
 
-            if (File.Exists(AppIDsFilePath))
+            InitAsync();
+        }
+
+        private async void InitAsync()
+        {
+            if (Program.WaitSteam > 0)
             {
-                StartApps();
+                await StartApps(Program.WaitSteam, true);
+            }
+            else if (File.Exists(AppIDsFilePath))
+            {
+                await StartApps();
             }
             else
             {
@@ -108,25 +120,55 @@ namespace SteamIdler
 
         private void UpdateControls()
         {
-            tsmiStart.Visible = !steamIdlerManager.IsRunning;
-            tsmiStop.Visible = steamIdlerManager.IsRunning;
+            if (!exiting)
+            {
+                tsmiStart.Visible = !steamIdlerManager.IsRunning;
+                tsmiStop.Visible = steamIdlerManager.IsRunning;
+                tsmiStart.Enabled = tsmiStop.Enabled = tsmiEdit.Enabled = true;
+            }
         }
 
-        private void StartApps()
+        private void ShowError(Exception e)
+        {
+            if (!exiting)
+            {
+                niMain.ShowBalloonTip(5000, "Error", e.Message, ToolTipIcon.Error);
+            }
+        }
+
+        private async Task StartApps(int waitSteam = 0, bool silent = false)
         {
             try
             {
-                if (File.Exists(AppIDsFilePath))
-                {
-                    steamIdlerManager.LoadAppIDs(AppIDsFilePath);
-                    steamIdlerManager.RunApps();
+                steamIdlerManager.LoadAppIDs(AppIDsFilePath);
 
-                    UpdateControls();
+                if (steamIdlerManager.AppIDs != null && steamIdlerManager.AppIDs.Count > 0)
+                {
+                    tsmiStart.Enabled = tsmiStop.Enabled = tsmiEdit.Enabled = false;
+
+                    bool isSteamRunning = await steamIdlerManager.WaitSteam(waitSteam);
+
+                    if (!exiting)
+                    {
+                        if (!isSteamRunning)
+                        {
+                            throw new Exception("Steam is not running.");
+                        }
+
+                        steamIdlerManager.RunApps();
+                    }
                 }
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (!silent)
+                {
+                    ShowError(e);
+                }
+            }
+            finally
+            {
+                UpdateControls();
             }
         }
 
@@ -135,22 +177,24 @@ namespace SteamIdler
             try
             {
                 steamIdlerManager.CloseApps();
-
-                UpdateControls();
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                MessageBox.Show(ex.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError(e);
+            }
+            finally
+            {
+                UpdateControls();
             }
         }
 
-        private void OpenEditForm()
+        private async Task OpenEditForm()
         {
             using (EditForm editForm = new EditForm(AppIDsFilePath))
             {
                 if (editForm.ShowDialog() == DialogResult.OK)
                 {
-                    StartApps();
+                    await StartApps();
                 }
             }
         }
@@ -161,7 +205,7 @@ namespace SteamIdler
             {
                 if (enable)
                 {
-                    string applicationPath = $"\"{Application.ExecutablePath}\"";
+                    string applicationPath = $"\"{Application.ExecutablePath}\" -WaitSteam 60";
                     rk.SetValue("SteamIdler", applicationPath);
                 }
                 else
@@ -182,20 +226,20 @@ namespace SteamIdler
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError(e);
             }
 
             return false;
         }
 
-        private void trayIcon_MouseDoubleClick(object sender, MouseEventArgs e)
+        private async void trayIcon_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            OpenEditForm();
+            await OpenEditForm();
         }
 
-        private void tsmiStart_Click(object sender, EventArgs e)
+        private async void tsmiStart_Click(object sender, EventArgs e)
         {
-            StartApps();
+            await StartApps();
         }
 
         private void tsmiStop_Click(object sender, EventArgs e)
@@ -203,9 +247,9 @@ namespace SteamIdler
             StopApps();
         }
 
-        private void tsmiEdit_Click(object sender, EventArgs e)
+        private async void tsmiEdit_Click(object sender, EventArgs e)
         {
-            OpenEditForm();
+            await OpenEditForm();
         }
 
         private void tsmiStartup_Click(object sender, EventArgs e)
@@ -220,7 +264,7 @@ namespace SteamIdler
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError(ex);
             }
         }
 
@@ -232,12 +276,14 @@ namespace SteamIdler
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError(ex);
             }
         }
 
         private void tsmiExit_Click(object sender, EventArgs e)
         {
+            exiting = true;
+
             // Hide tray icon, otherwise it will remain shown until user mouses over it
             niMain.Visible = false;
 
@@ -245,9 +291,8 @@ namespace SteamIdler
             {
                 steamIdlerManager?.Dispose();
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show(ex.Message, "Steam Idler - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             Application.Exit();

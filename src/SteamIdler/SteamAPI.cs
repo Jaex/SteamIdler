@@ -38,7 +38,7 @@ namespace SteamIdler
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool Init();
 
-        public static bool Init(long appID)
+        public static bool Init(int appID)
         {
             using (MutexManager mutex = new MutexManager("SteamAPI_Init_Mutex"))
             {
