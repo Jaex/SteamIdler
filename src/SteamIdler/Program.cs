@@ -23,12 +23,15 @@
 #endregion License Information (GPL v3)
 
 using System;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SteamIdler
 {
     internal static class Program
     {
+        private const string MutexName = "d0172a1a-5a5f-4fb3-bf46-a7e3138654f9";
+
         /// <summary>
         /// The time to wait for Steam to launch in seconds.
         /// </summary>
@@ -37,9 +40,9 @@ namespace SteamIdler
         [STAThread]
         private static void Main(string[] args)
         {
-            if (args.Length >= 2 && args[0].Equals("-AppID", StringComparison.OrdinalIgnoreCase) && int.TryParse(args[1], out int appID))
+            if (CheckArg(args, "-AppID", out int appID))
             {
-                if (SteamAPI.Init(appID))
+                if (SteamInit(appID))
                 {
                     Application.Run();
                     SteamAPI.Shutdown();
@@ -47,11 +50,11 @@ namespace SteamIdler
             }
             else
             {
-                using (MutexManager mutex = new MutexManager("d0172a1a-5a5f-4fb3-bf46-a7e3138654f9", 0))
+                using (MutexManager mutex = new MutexManager(MutexName, 0))
                 {
                     if (mutex.HasHandle)
                     {
-                        if (args.Length >= 2 && args[0].Equals("-WaitSteam", StringComparison.OrdinalIgnoreCase) && int.TryParse(args[1], out int waitSteam))
+                        if (CheckArg(args, "-WaitSteam", out int waitSteam))
                         {
                             WaitSteam = waitSteam;
                         }
@@ -62,6 +65,34 @@ namespace SteamIdler
                     }
                 }
             }
+        }
+
+        private static bool CheckArg(string[] args, string arg, out int result)
+        {
+            result = 0;
+            return args.Length > 1 && args[0].Equals(arg, StringComparison.OrdinalIgnoreCase) && int.TryParse(args[1], out result);
+        }
+
+        private static bool SteamInit(int appID)
+        {
+            if (SteamAPI.IsSteamRunning())
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    if (i > 0)
+                    {
+                        // Even "SteamAPI.IsSteamRunning()" is true still "SteamAPI.Init()" can fail, therefore need to give more time for Steam to launch.
+                        Thread.Sleep(5000);
+                    }
+
+                    if (SteamAPI.Init(appID))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

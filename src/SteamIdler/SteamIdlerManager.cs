@@ -50,18 +50,15 @@ namespace SteamIdler
             }
             else if (timeoutSeconds > 0)
             {
-                // Wait for Steam to launch
-                for (int i = 0; i < timeoutSeconds && !SteamAPI.IsSteamRunning(); i++)
+                // Wait for Steam to launch.
+                for (int i = 0; i < timeoutSeconds; i++)
                 {
                     await Task.Delay(1000);
-                }
 
-                if (SteamAPI.IsSteamRunning())
-                {
-                    // Even "IsSteamRunning()" is true still Steam API init can fail, therefore need to give more time for Steam to launch
-                    await Task.Delay(5000);
-
-                    return true;
+                    if (SteamAPI.IsSteamRunning())
+                    {
+                        return true;
+                    }
                 }
             }
 

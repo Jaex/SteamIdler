@@ -36,6 +36,8 @@ namespace SteamIdler
     {
         public string FilePath { get; private set; }
 
+        private bool ready;
+
         public EditForm(string filePath)
         {
             FilePath = filePath;
@@ -51,6 +53,8 @@ namespace SteamIdler
                 rtbAppIDs.SelectionStart = rtbAppIDs.TextLength;
                 SyntaxHighlight(rtbAppIDs);
             }
+
+            ready = true;
         }
 
         private void ApplyTheme(AppTheme theme)
@@ -102,6 +106,11 @@ namespace SteamIdler
         private void rtbAppIDs_TextChanged(object sender, EventArgs e)
         {
             SyntaxHighlight(rtbAppIDs);
+
+            if (ready)
+            {
+                btnOK.Enabled = true;
+            }
         }
 
         private void btnOK_Click(object sender, EventArgs e)

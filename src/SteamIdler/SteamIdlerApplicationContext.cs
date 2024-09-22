@@ -284,7 +284,7 @@ namespace SteamIdler
         {
             exiting = true;
 
-            // Hide tray icon, otherwise it will remain shown until user mouses over it
+            // Hide tray icon, otherwise it will remain shown until user mouses over it.
             niMain.Visible = false;
 
             try

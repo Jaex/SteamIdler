@@ -42,7 +42,7 @@ namespace SteamIdler
         {
             using (MutexManager mutex = new MutexManager("SteamAPI_Init_Mutex"))
             {
-                Environment.SetEnvironmentVariable("SteamAppId", appID.ToString());
+                SetSteamAppID(appID);
 
                 return Init();
             }
@@ -60,5 +60,10 @@ namespace SteamIdler
         [DllImport(LibraryName, EntryPoint = "SteamAPI_IsSteamRunning", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool IsSteamRunning();
+
+        public static void SetSteamAppID(int appID)
+        {
+            Environment.SetEnvironmentVariable("SteamAppId", appID.ToString());
+        }
     }
 }
