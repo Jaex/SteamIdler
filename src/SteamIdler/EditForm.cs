@@ -24,6 +24,7 @@
 
 using SteamIdler.Properties;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -67,6 +68,8 @@ namespace SteamIdler
             InitializeComponent();
             Icon = Resources.SteamIdler_Icon;
 
+            rtbAppIDs.AddContextMenu();
+
             ApplyTheme(AppTheme.DarkTheme);
 
             if (File.Exists(FilePath))
@@ -87,6 +90,8 @@ namespace SteamIdler
 
             rtbAppIDs.BackColor = theme.LightBackgroundColor;
             rtbAppIDs.ForeColor = theme.TextColor;
+            rtbAppIDs.ContextMenuStrip.Renderer = new ToolStripDarkRenderer();
+            rtbAppIDs.ContextMenuStrip.Font = theme.TextFont;
 
             btnOK.BackColor = theme.LightBackgroundColor;
             btnOK.ForeColor = theme.TextColor;
@@ -138,6 +143,11 @@ namespace SteamIdler
             {
                 btnOK.Enabled = true;
             }
+        }
+
+        private void rtbAppIDs_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            Process.Start(e.LinkText);
         }
 
         private void btnOK_Click(object sender, EventArgs e)

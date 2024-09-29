@@ -68,6 +68,7 @@
             this.rtbAppIDs.Size = new System.Drawing.Size(476, 258);
             this.rtbAppIDs.TabIndex = 0;
             this.rtbAppIDs.Text = "";
+            this.rtbAppIDs.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.rtbAppIDs_LinkClicked);
             this.rtbAppIDs.TextChanged += new System.EventHandler(this.rtbAppIDs_TextChanged);
             // 
             // pAppIDs
