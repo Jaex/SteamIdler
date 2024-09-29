@@ -96,6 +96,7 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Steam Idler - App IDs";
+            this.Shown += new System.EventHandler(this.EditForm_Shown);
             this.pAppIDs.ResumeLayout(false);
             this.ResumeLayout(false);
 

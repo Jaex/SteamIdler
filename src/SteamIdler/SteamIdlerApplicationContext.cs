@@ -190,11 +190,18 @@ namespace SteamIdler
 
         private async Task OpenEditForm()
         {
-            using (EditForm editForm = new EditForm(AppIDsFilePath))
+            if (EditForm.IsInstanceActive)
             {
-                if (editForm.ShowDialog() == DialogResult.OK)
+                EditForm.ActivateInstance();
+            }
+            else
+            {
+                using (EditForm editForm = EditForm.GetInstance(AppIDsFilePath))
                 {
-                    await StartApps();
+                    if (editForm.ShowDialog() == DialogResult.OK)
+                    {
+                        await StartApps();
+                    }
                 }
             }
         }

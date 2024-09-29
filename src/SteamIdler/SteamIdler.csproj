@@ -66,6 +66,9 @@
     <Compile Include="SteamIdlerApplicationContext.cs" />
     <Compile Include="SteamIdlerManager.cs" />
     <Compile Include="ToolStripDarkRenderer.cs" />
+    <EmbeddedResource Include="EditForm.resx">
+      <DependentUpon>EditForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

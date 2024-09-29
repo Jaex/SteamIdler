@@ -34,11 +34,33 @@ namespace SteamIdler
 {
     public partial class EditForm : Form
     {
+        private static EditForm instance;
+
+        public static bool IsInstanceActive => instance != null && !instance.IsDisposed;
+
+        public static EditForm GetInstance(string filePath)
+        {
+            if (!IsInstanceActive)
+            {
+                instance = new EditForm(filePath);
+            }
+
+            return instance;
+        }
+
+        public static void ActivateInstance()
+        {
+            if (IsInstanceActive)
+            {
+                instance.Activate();
+            }
+        }
+
         public string FilePath { get; private set; }
 
         private bool ready;
 
-        public EditForm(string filePath)
+        private EditForm(string filePath)
         {
             FilePath = filePath;
 
@@ -101,6 +123,11 @@ namespace SteamIdler
                 rtb.Select(originalSelectionStart, originalSelectionLength);
                 rtb.EndUpdate();
             }
+        }
+
+        private void EditForm_Shown(object sender, EventArgs e)
+        {
+            Activate();
         }
 
         private void rtbAppIDs_TextChanged(object sender, EventArgs e)
