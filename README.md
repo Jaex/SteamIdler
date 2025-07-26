@@ -1,4 +1,4 @@
-<h1 align="center">Steam Idler</h1>
+<h1 align="center"><img src="Logo.png" alt="Logo" width="32"/> Steam Idler</h1>
 
 Steam Idler is a lightweight tray application designed to help you idle Steam games or apps to gain playtime or collect trading cards. The app starts automatically with Windows and runs quietly in your system tray, providing a simple and effective way to idle games or apps without launching them manually.
 
